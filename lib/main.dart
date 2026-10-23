@@ -129,7 +129,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     _fetchRequests();
   }
 
-  // جلب الطلبات المعلقة من السحاب (JSONBin)
+  // جلب الطلبات المعلقة من السحاب مع طباعة الخطأ التفصيلي
   Future<void> _fetchRequests() async {
     setState(() {
       _isLoading = true;
@@ -162,7 +162,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           }
         }
       } else {
-        setState(() => _debugStatus = "خطأ في الاتصال: ${response.statusCode}");
+        // طباعة الاستجابة الحرفية من السحاب لمعرفة السبب بدقة
+        setState(() => _debugStatus = "خطأ ${response.statusCode}: ${response.body}");
       }
     } catch (e) {
       setState(() => _debugStatus = "خطأ استثنائي: $e");
@@ -239,14 +240,14 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ),
       body: Column(
         children: [
-          // شريط حالة الاتصال والتشخيص
+          // شريط حالة الاتصال والتشخيص المفصل
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             color: const Color(0xFF1E293B),
             width: double.infinity,
             child: Text(
               _debugStatus,
-              style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 13),
+              style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12),
               textAlign: TextAlign.center,
             ),
           ),
@@ -283,7 +284,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                   Text('📱 الهاتف: $phone', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 14)),
                                   const SizedBox(height: 5),
                                   Text('🔑 الرمز السري: $password', style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                                  const SizedBox(height: 5),
+                                  const SizedBox(height: الرسالة التوضيحية ? 5 : 5),
                                   Text('⏰ الوقت: ${date.length >= 16 ? date.substring(0, 16) : date}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
                                   const SizedBox(height: 15),
                                   SizedBox(
