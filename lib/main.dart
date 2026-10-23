@@ -121,7 +121,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   List<Map<String, dynamic>> _pendingRequests = [];
   bool _isLoading = true;
-  String _debugStatus = "جاري الاتصال...";
+  String _debugStatus = "جاري الاتصال بالسحاب...";
 
   @override
   void initState() {
@@ -129,11 +129,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     _fetchRequests();
   }
 
-  // جلب الطلبات المعلقة من السحاب مع طباعة الخطأ التفصيلي
+  // جلب الطلبات المعلقة من السحاب
   Future<void> _fetchRequests() async {
     setState(() {
       _isLoading = true;
-      _debugStatus = "جاري الاتصال بالسحاب...";
+      _debugStatus = "جاري التحديث...";
     });
 
     try {
@@ -162,11 +162,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           }
         }
       } else {
-        // طباعة الاستجابة الحرفية من السحاب لمعرفة السبب بدقة
-        setState(() => _debugStatus = "خطأ ${response.statusCode}: ${response.body}");
+        setState(() => _debugStatus = "خطأ في الاتصال (${response.statusCode}) - تأكد من صلاحية المفتاح");
       }
     } catch (e) {
-      setState(() => _debugStatus = "خطأ استثنائي: $e");
+      setState(() => _debugStatus = "خطأ بالاتصال بالإنترنت");
     }
     setState(() => _isLoading = false);
   }
@@ -240,9 +239,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ),
       body: Column(
         children: [
-          // شريط حالة الاتصال والتشخيص المفصل
+          // شريط حالة الاتصال
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             color: const Color(0xFF1E293B),
             width: double.infinity,
             child: Text(
@@ -284,7 +283,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                                   Text('📱 الهاتف: $phone', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 14)),
                                   const SizedBox(height: 5),
                                   Text('🔑 الرمز السري: $password', style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                                  const SizedBox(height: الرسالة التوضيحية ? 5 : 5),
+                                  const SizedBox(height: 5),
                                   Text('⏰ الوقت: ${date.length >= 16 ? date.substring(0, 16) : date}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
                                   const SizedBox(height: 15),
                                   SizedBox(
