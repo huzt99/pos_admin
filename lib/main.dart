@@ -129,11 +129,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     _fetchRequests();
   }
 
-  // جلب الطلبات المعلقة من السحاب
+  // جلب الطلبات المعلقة من السحاب مباشرة
   Future<void> _fetchRequests() async {
     setState(() {
       _isLoading = true;
-      _debugStatus = "جاري التحديث...";
+      _debugStatus = "جاري جلب الطلبات...";
     });
 
     try {
@@ -154,7 +154,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             if (requests is List) {
               setState(() {
                 _pendingRequests = requests.map((item) => Map<String, dynamic>.from(item)).toList();
-                _debugStatus = _pendingRequests.isEmpty ? "لا توجد طلبات معلقة حالياً" : "تم العثور على (${_pendingRequests.length}) طلب";
+                _debugStatus = _pendingRequests.isEmpty ? "لا توجد طلبات معلقة حالياً" : "تم العثور على (${_pendingRequests.length}) طلب معلق";
               });
             } else {
               setState(() => _debugStatus = "لا توجد قائمة طلبات في السحاب");
@@ -162,15 +162,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           }
         }
       } else {
-        setState(() => _debugStatus = "خطأ في الاتصال (${response.statusCode}) - تأكد من صلاحية المفتاح");
+        setState(() => _debugStatus = "خطأ في الاتصال بالسحاب (${response.statusCode})");
       }
     } catch (e) {
-      setState(() => _debugStatus = "خطأ بالاتصال بالإنترنت");
+      setState(() => _debugStatus = "خطأ في الشبكة أو الاتصال");
     }
     setState(() => _isLoading = false);
   }
 
-  // الموافقة على زبون ونقله لقائمة الحسابات المعتمدة
+  // الموافقة على الزبون ونقله لقائمة الحسابات المعتمدة
   Future<void> _approveUser(String identifier) async {
     setState(() => _isLoading = true);
     try {
@@ -239,7 +239,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       ),
       body: Column(
         children: [
-          // شريط حالة الاتصال
           Container(
             padding: const EdgeInsets.all(8),
             color: const Color(0xFF1E293B),
