@@ -35,7 +35,6 @@ class AdminLoginScreen extends StatefulWidget {
 class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _userCtrl = TextEditingController(text: "Huzt1998");
   final _passCtrl = TextEditingController(text: "Hz19881988");
-  bool _isLoading = false;
 
   void _login() {
     if (_userCtrl.text.trim() == "Huzt1998" && _passCtrl.text == "Hz19881988") {
@@ -175,20 +174,17 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       }
 
       data['approved_users'] ??= {};
-      // اعتماد الحساب بالسحاب
       data['approved_users'][identifier.trim()] = {
         'approved_at': DateTime.now().toIso8601String(),
         'status': 'active'
       };
 
-      // إزالة الطلب من القائمة المعلقة
       if (data['pending_requests'] is List) {
         List requests = List.from(data['pending_requests']);
         requests.removeWhere((item) => item['phone'] == identifier || item['name'] == identifier);
         data['pending_requests'] = requests;
       }
 
-      // تحديث السحاب
       await http.put(
         Uri.parse(baseUrl),
         headers: {
@@ -202,7 +198,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         SnackBar(content: Text('تمت الموافقة بنجاح على الحساب: $identifier')),
       );
 
-      _fetchRequests(); // تحديث القائمة
+      _fetchRequests();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('حدث خطأ أثناء الموافقة!')),
@@ -257,16 +253,18 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                             const SizedBox(height: 5),
                             Text('🔑 الرمز السري: $password', style: const TextStyle(color: Colors.white70, fontSize: 14)),
                             const SizedBox(height: 5),
-                            Text('⏰ الوقت: ${date.substring(0, 16)}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                            Text('⏰ الوقت: ${date.length >= 16 ? date.substring(0, 16) : date}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
                             const SizedBox(height: 15),
                             SizedBox(
                               width: double.infinity,
-                              child: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)).wrap(
-                                ElevatedButton(
-                                  onPressed: () => _approveUser(name),
-                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
-                                  child: const Text('موافقة وتفعيل دائم للحساب', style: TextStyle(color: Colors.white)),
+                              child: ElevatedButton(
+                                onPressed: () => _approveUser(name),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF10B981),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
+                                child: const Text('موافقة وتفعيل دائم للحساب', style: TextStyle(color: Colors.white, fontSize: 15)),
                               ),
                             ),
                           ],
