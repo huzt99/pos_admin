@@ -121,7 +121,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   List<Map<String, dynamic>> _pendingRequests = [];
   bool _isLoading = true;
-  String _debugStatus = "";
+  String _debugStatus = "جاري الاتصال...";
 
   @override
   void initState() {
@@ -139,7 +139,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     try {
       final response = await http.get(
         Uri.parse(baseUrl),
-        headers: {"X-Master-Key": masterKey},
+        headers: {
+          "X-Master-Key": masterKey,
+          "Content-Type": "application/json",
+        },
       );
 
       if (response.statusCode == 200) {
@@ -151,14 +154,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             if (requests is List) {
               setState(() {
                 _pendingRequests = requests.map((item) => Map<String, dynamic>.from(item)).toList();
-                _debugStatus = "تم جلب الطلبات بنجاح (${_pendingRequests.length})";
+                _debugStatus = _pendingRequests.isEmpty ? "لا توجد طلبات معلقة حالياً" : "تم العثور على (${_pendingRequests.length}) طلب";
               });
             } else {
-              setState(() => _debugStatus = "لا توجد قائمة pending_requests صالحة");
+              setState(() => _debugStatus = "لا توجد قائمة طلبات في السحاب");
             }
           }
-        } else {
-          setState(() => _debugStatus = "هيكل البيانات في السحاب غير متوافق");
         }
       } else {
         setState(() => _debugStatus = "خطأ في الاتصال: ${response.statusCode}");
@@ -175,7 +176,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     try {
       final response = await http.get(
         Uri.parse(baseUrl),
-        headers: {"X-Master-Key": masterKey},
+        headers: {
+          "X-Master-Key": masterKey,
+          "Content-Type": "application/json",
+        },
       );
 
       Map<String, dynamic> data = {};
@@ -242,7 +246,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             width: double.infinity,
             child: Text(
               _debugStatus,
-              style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12),
+              style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 13),
               textAlign: TextAlign.center,
             ),
           ),
