@@ -121,6 +121,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   List<Map<String, dynamic>> _pendingRequests = [];
   bool _isLoading = true;
+  String _debugStatus = "";
 
   @override
   void initState() {
@@ -130,7 +131,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
   // جلب الطلبات المعلقة من السحاب (JSONBin)
   Future<void> _fetchRequests() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _debugStatus = "جاري الاتصال بالسحاب...";
+    });
+
     try {
       final response = await http.get(
         Uri.parse(baseUrl),
@@ -141,17 +146,25 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         var decoded = jsonDecode(response.body);
         if (decoded != null && decoded['record'] != null) {
           var data = decoded['record'];
-          if (data is Map && data['pending_requests'] is List) {
-            setState(() {
-              _pendingRequests = List<Map<String, dynamic>>.from(
-                data['pending_requests'].map((item) => Map<String, dynamic>.from(item)),
-              );
-            });
+          if (data is Map) {
+            var requests = data['pending_requests'];
+            if (requests is List) {
+              setState(() {
+                _pendingRequests = requests.map((item) => Map<String, dynamic>.from(item)).toList();
+                _debugStatus = "تم جلب الطلبات بنجاح (${_pendingRequests.length})";
+              });
+            } else {
+              setState(() => _debugStatus = "لا توجد قائمة pending_requests صالحة");
+            }
           }
+        } else {
+          setState(() => _debugStatus = "هيكل البيانات في السحاب غير متوافق");
         }
+      } else {
+        setState(() => _debugStatus = "خطأ في الاتصال: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error fetching: $e");
+      setState(() => _debugStatus = "خطأ استثنائي: $e");
     }
     setState(() => _isLoading = false);
   }
@@ -220,59 +233,76 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
-          : _pendingRequests.isEmpty
-              ? const Center(
-                  child: Text(
-                    'لا توجد طلبات تفعيل معلقة حالياً',
-                    style: TextStyle(color: Colors.white60, fontSize: 16),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: _pendingRequests.length,
-                  itemBuilder: (context, index) {
-                    var req = _pendingRequests[index];
-                    String name = req['name'] ?? 'بدون اسم';
-                    String phone = req['phone'] ?? '';
-                    String password = req['password'] ?? '';
-                    String date = req['date'] ?? '';
+      body: Column(
+        children: [
+          // شريط حالة الاتصال والتشخيص
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: const Color(0xFF1E293B),
+            width: double.infinity,
+            child: Text(
+              _debugStatus,
+              style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF38BDF8)))
+                : _pendingRequests.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'لا توجد طلبات تفعيل معلقة حالياً',
+                          style: TextStyle(color: Colors.white60, fontSize: 16),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: _pendingRequests.length,
+                        itemBuilder: (context, index) {
+                          var req = _pendingRequests[index];
+                          String name = req['name'] ?? 'بدون اسم';
+                          String phone = req['phone'] ?? '';
+                          String password = req['password'] ?? '';
+                          String date = req['date'] ?? '';
 
-                    return Card(
-                      color: const Color(0xFF1E293B),
-                      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('👤 اليوزر / الإيميل: $name', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 5),
-                            Text('📱 الهاتف: $phone', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 14)),
-                            const SizedBox(height: 5),
-                            Text('🔑 الرمز السري: $password', style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                            const SizedBox(height: 5),
-                            Text('⏰ الوقت: ${date.length >= 16 ? date.substring(0, 16) : date}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                            const SizedBox(height: 15),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () => _approveUser(name),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF10B981),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                ),
-                                child: const Text('موافقة وتفعيل دائم للحساب', style: TextStyle(color: Colors.white, fontSize: 15)),
+                          return Card(
+                            color: const Color(0xFF1E293B),
+                            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(15.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('👤 اليوزر / الإيميل: $name', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                  const SizedBox(height: 5),
+                                  Text('📱 الهاتف: $phone', style: const TextStyle(color: Color(0xFF38BDF8), fontSize: 14)),
+                                  const SizedBox(height: 5),
+                                  Text('🔑 الرمز السري: $password', style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                                  const SizedBox(height: 5),
+                                  Text('⏰ الوقت: ${date.length >= 16 ? date.substring(0, 16) : date}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                                  const SizedBox(height: 15),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: () => _approveUser(name),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF10B981),
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      child: const Text('موافقة وتفعيل دائم للحساب', style: TextStyle(color: Colors.white, fontSize: 15)),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
+          ),
+        ],
+      ),
     );
   }
 }
